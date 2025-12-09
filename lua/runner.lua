@@ -1,0 +1,43 @@
+local M = {
+
+	current_buffer_id = nil,
+	test_window_id = nil,
+}
+M.setup = function()
+	-- Nothing here yet
+end
+
+local run_test_command = function()
+	local file_dir = vim.fn.expand("%:p:h")
+	return "go test " .. file_dir
+end
+local close_prev_run = function()
+	if M.test_window_id ~= nil and vim.api.nvim_win_is_valid(M.test_window_id) then
+		print("Close window " .. M.test_window_id)
+		vim.api.nvim_win_close(M.test_window_id, true)
+		M.test_window_id = nil
+	end
+	if M.current_buffer_id ~= nil then
+		print("Delete buffer " .. M.current_buffer_id)
+		vim.api.nvim_buf_delete(M.current_buffer_id, { force = true })
+		M.current_buffer_id = nil
+	end
+end
+
+vim.keymap.set("n", "<leader>tc", function()
+	close_prev_run()
+	local full_command = run_test_command()
+	vim.cmd("new")
+	M.test_window_id = vim.api.nvim_get_current_win()
+	print("Open window " .. M.test_window_id)
+	M.current_buffer_id = vim.api.nvim_create_buf(false, true)
+	print("Create buffer " .. M.current_buffer_id)
+	vim.api.nvim_set_current_buf(M.current_buffer_id)
+
+	vim.fn.termopen(full_command)
+end, { desc = "[t]est [c]urrent file" })
+
+vim.keymap.set("n", "<leader>td", function()
+	close_prev_run()
+end, { desc = "[t]estresult [d]iscad" })
+return M
