@@ -17,7 +17,7 @@ local close_prev_run = function()
 		vim.api.nvim_win_close(M.test_window_id, true)
 		M.test_window_id = nil
 	end
-	if M.current_buffer_id ~= nil then
+	if M.current_buffer_id ~= nil and vim.api.nvim_buf_is_valid(M.current_buffer_id) then
 		print("Delete buffer " .. M.current_buffer_id)
 		vim.api.nvim_buf_delete(M.current_buffer_id, { force = true })
 		M.current_buffer_id = nil
