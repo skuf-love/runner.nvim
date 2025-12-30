@@ -38,6 +38,30 @@ local close_prev_run = function()
 	clean_empty_bufs()
 end
 
+local jump_to_line = function()
+	local line = vim.api.nvim_get_current_line()
+	print("Current line: " .. line)
+	local path = line:match("([^%w]/[^%s]+)")
+	if path == nil then
+		return
+	end
+	print("Matched path: " .. path)
+	local file, line_num, col = path:match("([^:]+):?(%d*):?(%d*)")
+	print("File: " .. file)
+	if line_num ~= "" then
+		print("Line Num: " .. #line_num)
+	end
+	local absolute_path = vim.fn.fnamemodify(file, ":p")
+	print("Expanded path: " .. absolute_path)
+	local buf_num = vim.fn.bufnr(absolute_path)
+	if buf_num ~= -1 then
+		local buf_wins = vim.fn.win_findbuf(buf_num)
+		if #buf_wins > 0 then
+			vim.api.nvim_win_set_cursor(buf_wins[1], { tonumber(line_num) or 0, tonumber(col) or 0 })
+		end
+	end
+end
+
 local run_in_split_terminal = function(shell_command)
 	M.orignal_window_id = vim.api.nvim_get_current_win()
 	close_prev_run()
@@ -47,6 +71,8 @@ local run_in_split_terminal = function(shell_command)
 	M.current_buffer_id = vim.api.nvim_create_buf(false, true)
 	print("Create buffer " .. M.current_buffer_id)
 	vim.api.nvim_set_current_buf(M.current_buffer_id)
+
+	vim.keymap.set("n", "<enter>", jump_to_line, { buffer = M.current_buffer_id })
 
 	print("Running command: " .. shell_command)
 	vim.fn.termopen(shell_command)
