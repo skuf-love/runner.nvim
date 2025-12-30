@@ -22,9 +22,11 @@ local close_prev_run = function()
 		vim.api.nvim_buf_delete(M.current_buffer_id, { force = true })
 		M.current_buffer_id = nil
 	end
+	clean_empty_bufs()
 end
 
 vim.keymap.set("n", "<leader>tc", function()
+	M.orignal_window_id = vim.api.nvim_get_current_win()
 	close_prev_run()
 	local full_command = run_test_command()
 	vim.cmd("new")
@@ -35,6 +37,7 @@ vim.keymap.set("n", "<leader>tc", function()
 	vim.api.nvim_set_current_buf(M.current_buffer_id)
 
 	vim.fn.termopen(full_command)
+	vim.api.nvim_set_current_win(M.orignal_window_id)
 end, { desc = "[t]est [c]urrent file" })
 
 vim.keymap.set("n", "<leader>td", function()
