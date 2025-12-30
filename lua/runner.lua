@@ -38,10 +38,9 @@ local close_prev_run = function()
 	clean_empty_bufs()
 end
 
-vim.keymap.set("n", "<leader>tc", function()
+local run_in_split_terminal = function(shell_command)
 	M.orignal_window_id = vim.api.nvim_get_current_win()
 	close_prev_run()
-	local full_command = run_test_command()
 	vim.cmd("new")
 	M.test_window_id = vim.api.nvim_get_current_win()
 	print("Open window " .. M.test_window_id)
@@ -49,24 +48,17 @@ vim.keymap.set("n", "<leader>tc", function()
 	print("Create buffer " .. M.current_buffer_id)
 	vim.api.nvim_set_current_buf(M.current_buffer_id)
 
-	vim.fn.termopen(full_command)
+	print("Running command: " .. shell_command)
+	vim.fn.termopen(shell_command)
 	vim.api.nvim_set_current_win(M.orignal_window_id)
+end
+
+vim.keymap.set("n", "<leader>tc", function()
+	run_in_split_terminal(run_test_command())
 end, { desc = "[t]est [c]urrent file" })
 
 vim.keymap.set("n", "<leader>rc", function()
-	M.orignal_window_id = vim.api.nvim_get_current_win()
-	close_prev_run()
-	local full_command = run_package_command()
-	print("Run command: " .. full_command)
-	vim.cmd("new")
-	M.test_window_id = vim.api.nvim_get_current_win()
-	print("Open window " .. M.test_window_id)
-	M.current_buffer_id = vim.api.nvim_create_buf(false, true)
-	print("Create buffer " .. M.current_buffer_id)
-	vim.api.nvim_set_current_buf(M.current_buffer_id)
-
-	vim.fn.termopen(full_command)
-	vim.api.nvim_set_current_win(M.orignal_window_id)
+	run_in_split_terminal(run_package_command())
 end, { desc = "[r]un [c]urrent file" })
 
 vim.keymap.set("n", "<leader>td", function()
