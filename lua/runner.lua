@@ -1,7 +1,7 @@
 local M = {
-
 	current_buffer_id = nil,
 	test_window_id = nil,
+	original_window_id = nil,
 }
 M.setup = function()
 	-- Nothing here yet
@@ -10,6 +10,13 @@ end
 local run_test_command = function()
 	local file_dir = vim.fn.expand("%:p:h")
 	return "go test " .. file_dir
+end
+local clean_empty_bufs = function()
+	for _, buf in pairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_get_name(buf) == "" and not vim.bo.modified and vim.api.nvim_buf_is_loaded(buf) then
+			vim.api.nvim_buf_delete(buf, { force = true })
+		end
+	end
 end
 local close_prev_run = function()
 	if M.test_window_id ~= nil and vim.api.nvim_win_is_valid(M.test_window_id) then
