@@ -59,20 +59,29 @@ vim.keymap.set("n", "<leader>td", function()
 	close_prev_run()
 end, { desc = "[t]estresult [d]iscad" })
 
-M.setup = function()
-	local file_dir = vim.fn.expand("%:p:h")
-	local local_config_file = file_dir .. "/.runner.lua"
-	if vim.fn.filereadable(local_config_file) == 1 then
-		local local_config = dofile(local_config_file)
-		if local_config.keymaps ~= nil then
-			for i = 1, #local_config.keymaps do
-				local key_conf = local_config.keymaps[i]
+local group = vim.api.nvim_create_augroup("MyPlugin", { clear = true })
+local go_actions = require("runner.filetypes.go")
 
-				vim.keymap.set("n", "<leader>" .. key_conf.keys, function()
-					run_in_split_terminal(key_conf.cmd())
-				end, { desc = key_conf.desc })
-			end
-		end
+local define_keymaps = function(keymaps_for_file)
+	for i = 1, #keymaps_for_file do
+		local key_conf = keymaps_for_file[i]
+		print("Define auto command " .. key_conf.keys)
+		vim.keymap.set("n", "<leader>" .. key_conf.keys, function()
+			run_in_split_terminal(key_conf.cmd())
+		end, { desc = key_conf.desc, buffer = true })
 	end
 end
+
+vim.api.nvim_create_autocmd({ "BufEnter", "BufNewFile" }, {
+	group = group,
+	callback = function()
+		local filepath = vim.api.nvim_buf_get_name(0)
+		local filename = vim.fn.fnamemodify(filepath, ":t")
+		if filename:match(".go$") then
+			print("Go file matched")
+			define_keymaps(go_actions)
+		end
+	end,
+})
+M.setup = function() end
 return M
